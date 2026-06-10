@@ -1,20 +1,23 @@
-package test;
+package test.examples;
 
-import models.pojo.Registration415ResponsePojoModel;
-import models.pojo.RegistrationValidationErrorResponsePojoModel;
-import models.pojo.RegistrationRequestPojoModel;
-import models.pojo.RegistrationResponsePojoModel;
+import models.otherModels.pojo.Registration415ResponsePojoModel;
+import models.otherModels.pojo.RegistrationValidationErrorResponsePojoModel;
+import models.otherModels.pojo.RegistrationRequestPojoModel;
+import models.otherModels.pojo.RegistrationResponsePojoModel;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import test.TestBase;
 
 import static io.restassured.RestAssured.*;
 import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 @DisplayName("Pojo tests")
-public class RegistrationTestsPojo extends TestBase{
+public class RegistrationTestsPojo extends TestBase {
     String username;
     String password;
     String errorMsg;

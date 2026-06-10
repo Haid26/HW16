@@ -1,4 +1,4 @@
-package models.pojo;
+package models.otherModels.pojo;
 
 public class RegistrationResponsePojoModel {
     String username;

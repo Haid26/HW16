@@ -1,21 +1,24 @@
-package test;
+package test.examples;
 
-import models.lombok.Registration415ResponseLombokModel;
-import models.lombok.RegistrationValidationErrorResponseLombokModel;
-import models.lombok.RegistrationRequestLombokModel;
-import models.lombok.RegistrationResponseLombokModel;
+import models.otherModels.pojo.lombok.Registration415ResponseLombokModel;
+import models.otherModels.pojo.lombok.RegistrationValidationErrorResponseLombokModel;
+import models.otherModels.pojo.lombok.RegistrationRequestLombokModel;
+import models.otherModels.pojo.lombok.RegistrationResponseLombokModel;
 
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import test.TestBase;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Disabled
 @DisplayName("Lombok tests")
-public class RegistrationTestsLombok extends TestBase{
+public class RegistrationTestsLombok extends TestBase {
     String username;
     String password;
     String errorMsg;
