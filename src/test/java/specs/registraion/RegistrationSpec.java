@@ -30,19 +30,19 @@ public class RegistrationSpec {
     public static ResponseSpecification noContentTypeRegistrationResponseSpec = new ResponseSpecBuilder()
             .log(ALL)
             .expectStatusCode(415)
-            .expectBody(matchesJsonSchemaInClasspath("basicErrorWithDetailSchema.json"))
+            .expectBody(matchesJsonSchemaInClasspath("schemas/common/basicErrorWithDetailSchema.json"))
             .expectBody("detail",notNullValue())
             .build();
     public static ResponseSpecification errorPasswordRegistrationResponseSpec = new ResponseSpecBuilder()
             .log(ALL)
             .expectStatusCode(400)
-            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/emptydata_registration_response.json"))
+            .expectBody(matchesJsonSchemaInClasspath("schemas/common/emptydata_response.json"))
             .expectBody("password",notNullValue())
             .build();
     public static ResponseSpecification errorUserNameRegistrationResponseSpec = new ResponseSpecBuilder()
             .log(ALL)
             .expectStatusCode(400)
-            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/emptydata_registration_response.json"))
+            .expectBody(matchesJsonSchemaInClasspath("schemas/common/emptydata_response.json"))
             .expectBody("username",notNullValue())
             .build();
 }

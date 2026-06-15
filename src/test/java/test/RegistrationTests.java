@@ -3,14 +3,13 @@ package test;
 import models.common.ErrorDetailResponseModel;
 import models.registration.RegistrationRequestModel;
 import models.registration.RegistrationResponseModel;
-import models.registration.RegistrationValidationErrorResponseModel;
+import models.common.UsernamePasswordValidationErrorResponseModel;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static specs.registraion.RegistrationSpec.*;
 
@@ -84,19 +83,19 @@ public class RegistrationTests extends TestBase{
 
     @Test
     @DisplayName("Registration empty password")
-    public  void RegistrationTestEmptyPassword(){
+    public  void registrationTestEmptyPassword(){
         generateTestData();
 
         RegistrationRequestModel data = new RegistrationRequestModel(username,null);
 
-        RegistrationValidationErrorResponseModel responseModel = given(registrationRequestSpec)
+        UsernamePasswordValidationErrorResponseModel responseModel = given(registrationRequestSpec)
                 .body(data)
                 .when()
                 .post("/users/register/")
                 .then()
                 .spec(errorPasswordRegistrationResponseSpec)
                 .extract()
-                .as(RegistrationValidationErrorResponseModel.class);
+                .as(UsernamePasswordValidationErrorResponseModel.class);
 
         errorMsg="This field may not be null.";
         assertEquals(errorMsg,responseModel.password().get(0));
@@ -104,19 +103,19 @@ public class RegistrationTests extends TestBase{
 
     @Test
     @DisplayName("Registration empty username")
-    public  void RegistrationTestEmptyUsername(){
+    public  void registrationTestEmptyUsername(){
         generateTestData();
 
         RegistrationRequestModel data = new RegistrationRequestModel(null,password);
 
-        RegistrationValidationErrorResponseModel responseModel = given(registrationRequestSpec)
+        UsernamePasswordValidationErrorResponseModel responseModel = given(registrationRequestSpec)
                 .body(data)
                 .when()
                 .post("/users/register/")
                 .then()
                 .spec(errorUserNameRegistrationResponseSpec)
                 .extract()
-                .as(RegistrationValidationErrorResponseModel.class);
+                .as(UsernamePasswordValidationErrorResponseModel.class);
 
         errorMsg = "This field may not be null.";
         assertEquals(errorMsg,responseModel.username().get(0));
@@ -124,7 +123,7 @@ public class RegistrationTests extends TestBase{
 
     @Test
     @DisplayName("Registration Existing user")
-    public  void RegistrationExistingUserTest(){
+    public  void registrationExistingUserTest(){
         generateTestData();
 
         RegistrationRequestModel data = new RegistrationRequestModel(username,password);
@@ -140,14 +139,14 @@ public class RegistrationTests extends TestBase{
 
         assertEquals(username,responseModel.username());
 
-        RegistrationValidationErrorResponseModel responseModel2 = given(registrationRequestSpec)
+        UsernamePasswordValidationErrorResponseModel responseModel2 = given(registrationRequestSpec)
                 .body(data)
                 .when()
                 .post("/users/register/")
                 .then()
                 .spec(errorUserNameRegistrationResponseSpec)
                 .extract()
-                .as(RegistrationValidationErrorResponseModel.class);
+                .as(UsernamePasswordValidationErrorResponseModel.class);
 
         errorMsg = "A user with that username already exists.";
         assertEquals(errorMsg,responseModel2.username().get(0));

@@ -1,9 +1,9 @@
 package test.examples;
 
-import models.otherModels.pojo.lombok.Registration415ResponseLombokModel;
-import models.otherModels.pojo.lombok.RegistrationValidationErrorResponseLombokModel;
-import models.otherModels.pojo.lombok.RegistrationRequestLombokModel;
-import models.otherModels.pojo.lombok.RegistrationResponseLombokModel;
+import models.otherModels.lombok.Registration415ResponseLombokModel;
+import models.otherModels.lombok.RegistrationValidationErrorResponseLombokModel;
+import models.otherModels.lombok.RegistrationRequestLombokModel;
+import models.otherModels.lombok.RegistrationResponseLombokModel;
 
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
