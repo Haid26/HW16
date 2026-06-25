@@ -1,7 +1,6 @@
 package test;
 
 import models.common.ErrorDetailResponseModel;
-import models.common.UsernamePasswordValidationErrorResponseModel;
 import models.login.LoginRequestModel;
 import models.login.LoginResponseModel;
 import models.logout.LogoutEmptyRequestModel;
@@ -11,7 +10,6 @@ import models.logout.LogoutResponseWithoutTokenModel;
 import models.registration.RegistrationRequestModel;
 import models.registration.RegistrationResponseModel;
 import net.datafaker.Faker;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +18,6 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static specs.login.LoginSpec.*;
-import static specs.login.LoginSpec.errorPasswordLoginResponseSpec;
 import static specs.logout.LogoutSpec.*;
 import static specs.registraion.RegistrationSpec.registrationRequestSpec;
 import static specs.registraion.RegistrationSpec.successfulRegistrationResponseSpec;
@@ -29,7 +26,6 @@ import static specs.registraion.RegistrationSpec.successfulRegistrationResponseS
 public class LogoutTests extends TestBase {
     String username;
     String password;
-    String errorMsg;
     String actualRefresh;
     String actualAccess;
 
