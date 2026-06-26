@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static specs.registraion.RegistrationSpec.*;
+import static testData.TestData.*;
 
 @DisplayName("Registration tests")
 public class RegistrationTests extends TestBase{
@@ -27,7 +28,7 @@ public class RegistrationTests extends TestBase{
     }
 
     @Test
-    @DisplayName("Registration 201")
+    @DisplayName("Registration successful")
     public  void successfulRegistrationTest(){
         generateTestData();
 
@@ -37,7 +38,7 @@ public class RegistrationTests extends TestBase{
         RegistrationResponseModel responseModel = given(registrationRequestSpec)
                 .body(registrationData)
                 .when()
-                .patch("/users/register/")
+                .post("/users/register/")
                 .then()
                 .spec(successfulRegistrationResponseSpec)
                 .extract()
@@ -77,8 +78,7 @@ public class RegistrationTests extends TestBase{
                 .extract()
                 .as(ErrorDetailResponseModel.class);
 
-        String detail = "Unsupported media type \"text/plain; charset=ISO-8859-1\" in request.";
-        assertEquals(detail,responseModel.detail());
+        assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE,responseModel.detail());
     }
 
     @Test
@@ -97,8 +97,7 @@ public class RegistrationTests extends TestBase{
                 .extract()
                 .as(UsernamePasswordValidationErrorResponseModel.class);
 
-        errorMsg="This field may not be null.";
-        assertEquals(errorMsg,responseModel.password().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE,responseModel.password().get(0));
     }
 
     @Test
@@ -117,8 +116,7 @@ public class RegistrationTests extends TestBase{
                 .extract()
                 .as(UsernamePasswordValidationErrorResponseModel.class);
 
-        errorMsg = "This field may not be null.";
-        assertEquals(errorMsg,responseModel.username().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE,responseModel.username().get(0));
     }
 
     @Test
@@ -148,8 +146,7 @@ public class RegistrationTests extends TestBase{
                 .extract()
                 .as(UsernamePasswordValidationErrorResponseModel.class);
 
-        errorMsg = "A user with that username already exists.";
-        assertEquals(errorMsg,responseModel2.username().get(0));
+        assertEquals(EXPECTED_ERROR_EXISTING_USER,responseModel2.username().get(0));
     }
 }
 

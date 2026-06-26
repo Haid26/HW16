@@ -23,6 +23,7 @@ import static specs.login.LoginSpec.successfulLoginResponseSpec;
 import static specs.registraion.RegistrationSpec.registrationRequestSpec;
 import static specs.registraion.RegistrationSpec.successfulRegistrationResponseSpec;
 import static specs.updateUser.UpdateUserSpec.*;
+import static testData.TestData.*;
 
 @DisplayName("Tests for update user info method")
 public class UpdateUserTests extends TestBase {
@@ -37,7 +38,6 @@ public class UpdateUserTests extends TestBase {
     String detail;
     String actualUserName;
     String actualPassword;
-    final String ERRMSG = "This field may not be null.";
 
     @BeforeEach
     public void generateTestData() {
@@ -78,18 +78,18 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(LoginResponseModel.class);
 
-        String expectedTokenPath = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+
         actualRefresh = loginResponse.refresh();
         actualAccess = loginResponse.access();
 
-        assertThat(actualAccess).startsWith(expectedTokenPath);
-        assertThat(actualRefresh).startsWith(expectedTokenPath);
+        assertThat(actualAccess).startsWith(EXPECTED_TOKEN_PATH);
+        assertThat(actualRefresh).startsWith(EXPECTED_TOKEN_PATH);
         assertThat(actualAccess).isNotEqualTo(actualRefresh);
     }
 
     @Test
-    @DisplayName("Successful full info update test")
-    public void successfulUpdateUserInfoTest() {
+    @DisplayName("Successful Patch full info update test")
+    public void successfulPatchUpdateUserInfoTest() {
         generateTestData();
         registerUser(username, password);
         loginUser(username, password);
@@ -118,8 +118,8 @@ public class UpdateUserTests extends TestBase {
     }
 
     @Test
-    @DisplayName("Update user info without /")
-    public void updateUserInfoWithWrongUrlTest() {
+    @DisplayName("Patch Update user info without /")
+    public void patchUpdateUserInfoWithWrongUrlTest() {
         generateTestData();
         registerUser(username, password);
         loginUser(username, password);
@@ -137,8 +137,8 @@ public class UpdateUserTests extends TestBase {
     }
 
     @Test
-    @DisplayName("update user info without content type test")
-    public void updateUserInfoNoContentTypeTest() {
+    @DisplayName("Patch update user info without content type test")
+    public void patchUpdateUserInfoNoContentTypeTest() {
         generateTestData();
         registerUser(username, password);
         loginUser(username, password);
@@ -156,13 +156,12 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(ErrorDetailResponseModel.class);
 
-        detail = "Unsupported media type \"text/plain; charset=ISO-8859-1\" in request.";
-        assertEquals(detail, responseModel.detail());
+        assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE, responseModel.detail());
     }
 
     @Test
-    @DisplayName("Test without Token")
-    public void updateUserInfoWithoutTokenTest() {
+    @DisplayName("Patch update user without Token")
+    public void patchUpdateUserInfoWithoutTokenTest() {
         generateTestData();
         registerUser(username, password);
         loginUser(username, password);
@@ -178,13 +177,12 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(ErrorDetailResponseModel.class);
 
-        detail = "Authentication credentials were not provided.";
-        assertEquals(detail, responseModel.detail());
+        assertEquals(EXPECTED_ERROR_NO_TOKEN, responseModel.detail());
     }
 
     @Test
-    @DisplayName("successful Partial info update test")
-    public void successfulPartialUpdateUserInfoTest() {
+    @DisplayName("successful Patch Partial info update test")
+    public void successfulPatchPartialUpdateUserInfoTest() {
         generateTestData();
         registerUser(username, password);
         loginUser(username, password);
@@ -228,7 +226,7 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(UpdateUserNullErorResponseModel.class);
 
-        assertEquals(ERRMSG, responseModel.username().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.username().get(0));
 
     }
 
@@ -252,7 +250,7 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(UpdateUserNullErorResponseModel.class);
 
-        assertEquals(ERRMSG, responseModel.firstName().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.firstName().get(0));
 
     }
 
@@ -276,7 +274,7 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(UpdateUserNullErorResponseModel.class);
 
-        assertEquals(ERRMSG, responseModel.lastName().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.lastName().get(0));
 
     }
 
@@ -300,13 +298,13 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(UpdateUserNullErorResponseModel.class);
 
-        assertEquals(ERRMSG, responseModel.email().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.email().get(0));
 
     }
 
     @Test
-    @DisplayName("Test with all null parameters")
-    public void updateUserNullAllParametersTest() {
+    @DisplayName("Patch Test with all null parameters")
+    public void patchUpdateUserNullAllParametersTest() {
         generateTestData();
         registerUser(username, password);
         loginUser(username, password);
@@ -324,10 +322,152 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(UpdateUserNullErorResponseModel.class);
 
-        assertEquals(ERRMSG, responseModel.username().get(0));
-        assertEquals(ERRMSG, responseModel.firstName().get(0));
-        assertEquals(ERRMSG, responseModel.lastName().get(0));
-        assertEquals(ERRMSG, responseModel.email().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.username().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.firstName().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.lastName().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.email().get(0));
+    }
 
+    @Test
+    @DisplayName("Successful Put full info update test")
+    public void successfulPutUpdateUserInfoTest() {
+        generateTestData();
+        registerUser(username, password);
+        loginUser(username, password);
+
+        actualUserName = username;
+        actualPassword = password;
+        generateTestData();
+        UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
+
+        UpdateUserSuccessfulResponseModel responseModel = given(updateUserRequestSpec)
+                .body(updateUserRequest)
+                .headers("Authorization",
+                        "Bearer " + actualAccess)
+                .when()
+                .put("/users/me/")
+                .then()
+                .spec(successfulUpdateUserResponseSpec)
+                .extract()
+                .as(UpdateUserSuccessfulResponseModel.class);
+
+        assertEquals(id, responseModel.id());
+        assertEquals(username, responseModel.username());
+        assertEquals(firstName, responseModel.firstName());
+        assertEquals(lastName, responseModel.lastName());
+        assertEquals(email, responseModel.email());
+    }
+
+    @Test
+    @DisplayName("Put Update user info without /")
+    public void putUpdateUserInfoWithWrongUrlTest() {
+        generateTestData();
+        registerUser(username, password);
+        loginUser(username, password);
+
+        UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
+
+        given(updateUserRequestSpec)
+                .body(updateUserRequest)
+                .headers("Authorization",
+                        "Bearer " + actualAccess)
+                .when()
+                .put("/users/me")
+                .then()
+                .spec(error500UpdateUserResponseSpec);
+    }
+
+    @Test
+    @DisplayName("Put update user info without content type test")
+    public void putUpdateUserInfoNoContentTypeTest() {
+        generateTestData();
+        registerUser(username, password);
+        loginUser(username, password);
+
+        UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
+
+        ErrorDetailResponseModel responseModel = given(updateUserNoContentTypeRequestSpec)
+                .body(updateUserRequest)
+                .headers("Authorization",
+                        "Bearer " + actualAccess)
+                .when()
+                .put("/users/me/")
+                .then()
+                .spec(noContentTypeUpdateUserResponseSpec)
+                .extract()
+                .as(ErrorDetailResponseModel.class);
+
+        assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE, responseModel.detail());
+    }
+
+    @Test
+    @DisplayName("Put update user without Token")
+    public void putUpdateUserInfoWithoutTokenTest() {
+        generateTestData();
+        registerUser(username, password);
+        loginUser(username, password);
+
+        UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
+
+        ErrorDetailResponseModel responseModel = given(updateUserRequestSpec)
+                .body(updateUserRequest)
+                .when()
+                .patch("/users/me/")
+                .then()
+                .spec(noTokenUpdateUserResponseSpec)
+                .extract()
+                .as(ErrorDetailResponseModel.class);
+
+        assertEquals(EXPECTED_ERROR_NO_TOKEN, responseModel.detail());
+    }
+
+    @Test
+    @DisplayName("Put Partial info update test")
+    public void putPartialUpdateUserInfoTest() {
+        generateTestData();
+        registerUser(username, password);
+        loginUser(username, password);
+
+        UpdateUserPartialRequestModel updateUserRequest = new UpdateUserPartialRequestModel(firstName, lastName);
+
+        UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
+                .body(updateUserRequest)
+                .headers("Authorization",
+                        "Bearer " + actualAccess)
+                .when()
+                .put("/users/me/")
+                .then()
+                .spec(nullDataUpdateUserResponseSpec)
+                .extract()
+                .as(UpdateUserNullErorResponseModel.class);
+
+        assertEquals(EXPECTED_ERROR_REQUIRED_FIELD,responseModel.username().get(0));
+        assertEquals(EXPECTED_ERROR_REQUIRED_FIELD,responseModel.email().get(0));
+    }
+
+    @Test
+    @DisplayName("Put Test with all null parameters")
+    public void putUpdateUserNullAllParametersTest() {
+        generateTestData();
+        registerUser(username, password);
+        loginUser(username, password);
+
+        UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(null, null, null, null);
+
+        UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
+                .body(updateUserRequest)
+                .headers("Authorization",
+                        "Bearer " + actualAccess)
+                .when()
+                .put("/users/me/")
+                .then()
+                .spec(nullDataUpdateUserResponseSpec)
+                .extract()
+                .as(UpdateUserNullErorResponseModel.class);
+
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.username().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.firstName().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.lastName().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.email().get(0));
     }
 }

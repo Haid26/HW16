@@ -21,6 +21,7 @@ import static specs.login.LoginSpec.*;
 import static specs.logout.LogoutSpec.*;
 import static specs.registraion.RegistrationSpec.registrationRequestSpec;
 import static specs.registraion.RegistrationSpec.successfulRegistrationResponseSpec;
+import static testData.TestData.*;
 
 @DisplayName("Logout tests")
 public class LogoutTests extends TestBase {
@@ -63,12 +64,11 @@ public class LogoutTests extends TestBase {
                 .extract()
                 .as(LoginResponseModel.class);
 
-        String expectedTokenPath = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
         actualRefresh = loginResponse.refresh();
         actualAccess = loginResponse.access();
 
-        assertThat(actualAccess).startsWith(expectedTokenPath);
-        assertThat(actualRefresh).startsWith(expectedTokenPath);
+        assertThat(actualAccess).startsWith(EXPECTED_TOKEN_PATH);
+        assertThat(actualRefresh).startsWith(EXPECTED_TOKEN_PATH);
         assertThat(actualAccess).isNotEqualTo(actualRefresh);
     }
 
@@ -126,8 +126,7 @@ public class LogoutTests extends TestBase {
                 .extract()
                 .as(ErrorDetailResponseModel.class);
 
-        String detail = "Unsupported media type \"text/plain; charset=ISO-8859-1\" in request.";
-        assertEquals(detail, responseModel.detail());
+        assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE, responseModel.detail());
     }
 
     @Test
@@ -148,9 +147,7 @@ public class LogoutTests extends TestBase {
                 .extract()
                 .as(LogoutResponseWithoutTokenModel.class);
 
-        String errorMsg = "This field may not be null.";
-
-        assertEquals(errorMsg, responseModel.refresh().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.refresh().get(0));
     }
 
     @Test
@@ -167,9 +164,7 @@ public class LogoutTests extends TestBase {
                 .extract()
                 .as(LogoutResponseWithoutTokenModel.class);
 
-        String errorMsg = "This field is required.";
-
-        assertEquals(errorMsg, responseModel.refresh().get(0));
+       assertEquals(EXPECTED_ERROR_REQUIRED_FIELD, responseModel.refresh().get(0));
     }
 
     @Test
@@ -186,10 +181,10 @@ public class LogoutTests extends TestBase {
                 .extract()
                 .as(LogoutResponseErrorTokenModel.class);
 
-        String detail = "Token is invalid";
-        String code = "token_not_valid";
-        assertEquals(detail, responseModel.detail());
-        assertEquals(code,responseModel.code());
+
+
+        assertEquals(EXPECTED_ERROR_INVALID_TOKEN, responseModel.detail());
+        assertEquals(EXPECTED_ERROR_CODE_INVALID_TOKEN,responseModel.code());
     }
 
     @Test
@@ -216,10 +211,9 @@ public class LogoutTests extends TestBase {
                 .extract()
                 .as(LogoutResponseErrorTokenModel.class);
 
-        String detail = "Token is blacklisted";
-        String code = "token_not_valid";
-        assertEquals(detail, responseModel2.detail());
-        assertEquals(code,responseModel2.code());
+
+        assertEquals(EXPECTED_ERROR_TOKEN_BLACKLISTED, responseModel2.detail());
+        assertEquals(EXPECTED_ERROR_CODE_INVALID_TOKEN,responseModel2.code());
     }
 
 }

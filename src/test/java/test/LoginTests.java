@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static specs.login.LoginSpec.*;
 import static specs.registraion.RegistrationSpec.*;
+import static testData.TestData.*;
 
 @DisplayName("Login tests")
 public class LoginTests extends TestBase{
@@ -64,12 +65,11 @@ public class LoginTests extends TestBase{
                 .extract()
                 .as(LoginResponseModel.class);
 
-        String expectedTokenPath = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
         String actualRefresh = loginResponse.refresh();
         String actualAccess = loginResponse.access();
 
-        assertThat(actualAccess).startsWith(expectedTokenPath);
-        assertThat(actualRefresh).startsWith(expectedTokenPath);
+        assertThat(actualAccess).startsWith(EXPECTED_TOKEN_PATH);
+        assertThat(actualRefresh).startsWith(EXPECTED_TOKEN_PATH);
         assertThat(actualAccess).isNotEqualTo(actualRefresh);
     }
 
@@ -104,8 +104,7 @@ public class LoginTests extends TestBase{
                 .extract()
                 .as(ErrorDetailResponseModel.class);
 
-        String detail = "Unsupported media type \"text/plain; charset=ISO-8859-1\" in request.";
-        assertEquals(detail,responseModel.detail());
+        assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE,responseModel.detail());
     }
 
     @Test
@@ -124,8 +123,7 @@ public class LoginTests extends TestBase{
                 .extract()
                 .as(UsernamePasswordValidationErrorResponseModel.class);
 
-        errorMsg="This field may not be null.";
-        assertEquals(errorMsg,responseModel.password().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE,responseModel.password().get(0));
     }
 
     @Test
@@ -144,8 +142,7 @@ public class LoginTests extends TestBase{
                 .extract()
                 .as(UsernamePasswordValidationErrorResponseModel.class);
 
-        errorMsg = "This field may not be null.";
-        assertEquals(errorMsg,responseModel.username().get(0));
+        assertEquals(EXPECTED_ERROR_NULL_VALUE,responseModel.username().get(0));
     }
 
     @Test
@@ -169,8 +166,8 @@ public class LoginTests extends TestBase{
                 .extract()
                 .as(ErrorDetailResponseModel.class);
 
-        String expectedErrorMessage = "Invalid username or password.";
-        assertThat(loginResponse.detail()).isEqualTo(expectedErrorMessage);
+
+        assertThat(loginResponse.detail()).isEqualTo(EXPECTED_ERROR_WRONG_CREDENTIALS);
     }
 
     @Test
@@ -194,7 +191,6 @@ public class LoginTests extends TestBase{
                 .extract()
                 .as(ErrorDetailResponseModel.class);
 
-        String expectedErrorMessage = "Invalid username or password.";
-        assertThat(loginResponse.detail()).isEqualTo(expectedErrorMessage);
+        assertThat(loginResponse.detail()).isEqualTo(EXPECTED_ERROR_WRONG_CREDENTIALS);
     }
 }
