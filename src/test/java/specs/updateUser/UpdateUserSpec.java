@@ -27,5 +27,16 @@ public record UpdateUserSpec() {
             .expectBody("email", notNullValue())
             .expectBody("remoteAddr", notNullValue())
             .build();
+    public static ResponseSpecification noTokenUpdateUserResponseSpec = new ResponseSpecBuilder()
+            .log(ALL)
+            .expectStatusCode(401)
+            .expectBody(matchesJsonSchemaInClasspath("schemas/common/basicErrorWithDetailSchema.json"))
+            .expectBody("detail", notNullValue())
+            .build();
+    public static ResponseSpecification nullDataUpdateUserResponseSpec = new ResponseSpecBuilder()
+            .log(ALL)
+            .expectStatusCode(400)
+            .expectBody(matchesJsonSchemaInClasspath("schemas/updateUser/error_user_update_response_schema.json"))
+            .build();
 
 }
