@@ -1,5 +1,6 @@
 package test;
 
+import io.qameta.allure.Step;
 import models.common.ErrorDetailResponseModel;
 import models.login.LoginRequestModel;
 import models.login.LoginResponseModel;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import specs.updateUser.UpdateUserSpec;
 
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,7 +41,6 @@ public class UpdateUserTests extends TestBase {
     String actualUserName;
     String actualPassword;
 
-    @BeforeEach
     public void generateTestData() {
         Faker faker = new Faker();
         username = faker.internet().username();
@@ -50,6 +51,7 @@ public class UpdateUserTests extends TestBase {
 
     }
 
+    @Step("Регистрация пользователя")
     public void registerUser(String username, String password) {
         RegistrationRequestModel registrationData = new RegistrationRequestModel(username, password);
 
@@ -66,6 +68,7 @@ public class UpdateUserTests extends TestBase {
         id = registrationResponseModel.id();
     }
 
+    @Step("Авторизация пользователя")
     public void loginUser(String username, String password) {
         LoginRequestModel loginData = new LoginRequestModel(username, password);
 
@@ -98,23 +101,24 @@ public class UpdateUserTests extends TestBase {
         actualPassword = password;
         generateTestData();
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
+        step("успешное обновление всех данных", () -> {
+            UpdateUserSuccessfulResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(successfulUpdateUserResponseSpec)
+                    .extract()
+                    .as(UpdateUserSuccessfulResponseModel.class);
 
-        UpdateUserSuccessfulResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(successfulUpdateUserResponseSpec)
-                .extract()
-                .as(UpdateUserSuccessfulResponseModel.class);
-
-        assertEquals(id, responseModel.id());
-        assertEquals(username, responseModel.username());
-        assertEquals(firstName, responseModel.firstName());
-        assertEquals(lastName, responseModel.lastName());
-        assertEquals(email, responseModel.email());
+            assertEquals(id, responseModel.id());
+            assertEquals(username, responseModel.username());
+            assertEquals(firstName, responseModel.firstName());
+            assertEquals(lastName, responseModel.lastName());
+            assertEquals(email, responseModel.email());
+        });
     }
 
     @Test
@@ -125,15 +129,16 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
-
-        given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me")
-                .then()
-                .spec(error500UpdateUserResponseSpec);
+        step("отправка запроса без /", () -> {
+            given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me")
+                    .then()
+                    .spec(error500UpdateUserResponseSpec);
+        });
     }
 
     @Test
@@ -144,19 +149,20 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
+        step("отправка запроса без content type", () -> {
+            ErrorDetailResponseModel responseModel = given(updateUserNoContentTypeRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(noContentTypeUpdateUserResponseSpec)
+                    .extract()
+                    .as(ErrorDetailResponseModel.class);
 
-        ErrorDetailResponseModel responseModel = given(updateUserNoContentTypeRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(noContentTypeUpdateUserResponseSpec)
-                .extract()
-                .as(ErrorDetailResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE, responseModel.detail());
+            assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE, responseModel.detail());
+        });
     }
 
     @Test
@@ -167,17 +173,18 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, lastName, email);
+        step("отправка запроса без токена", () -> {
+            ErrorDetailResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(noTokenUpdateUserResponseSpec)
+                    .extract()
+                    .as(ErrorDetailResponseModel.class);
 
-        ErrorDetailResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(noTokenUpdateUserResponseSpec)
-                .extract()
-                .as(ErrorDetailResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_NO_TOKEN, responseModel.detail());
+            assertEquals(EXPECTED_ERROR_NO_TOKEN, responseModel.detail());
+        });
     }
 
     @Test
@@ -188,22 +195,23 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserPartialRequestModel updateUserRequest = new UpdateUserPartialRequestModel(firstName, lastName);
+        step("частичное обновление данных", () -> {
+            UpdateUserSuccessfulResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(successfulUpdateUserResponseSpec)
+                    .extract()
+                    .as(UpdateUserSuccessfulResponseModel.class);
 
-        UpdateUserSuccessfulResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(successfulUpdateUserResponseSpec)
-                .extract()
-                .as(UpdateUserSuccessfulResponseModel.class);
-
-        assertEquals(id, responseModel.id());
-        assertEquals(username, responseModel.username());
-        assertEquals(firstName, responseModel.firstName());
-        assertEquals(lastName, responseModel.lastName());
+            assertEquals(id, responseModel.id());
+            assertEquals(username, responseModel.username());
+            assertEquals(firstName, responseModel.firstName());
+            assertEquals(lastName, responseModel.lastName());
+        });
     }
 
     @Test
@@ -214,19 +222,20 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(null, firstName, lastName, email);
+        step("отправка запроса username=null", () -> {
+            UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(nullDataUpdateUserResponseSpec)
+                    .extract()
+                    .as(UpdateUserNullErorResponseModel.class);
 
-        UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(nullDataUpdateUserResponseSpec)
-                .extract()
-                .as(UpdateUserNullErorResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.username().get(0));
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.username().get(0));
+        });
 
     }
 
@@ -238,20 +247,20 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, null, lastName, email);
+        step("отправка запроса firstName=null", () -> {
+            UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(nullDataUpdateUserResponseSpec)
+                    .extract()
+                    .as(UpdateUserNullErorResponseModel.class);
 
-        UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(nullDataUpdateUserResponseSpec)
-                .extract()
-                .as(UpdateUserNullErorResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.firstName().get(0));
-
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.firstName().get(0));
+        });
     }
 
     @Test
@@ -262,20 +271,20 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, firstName, null, email);
+        step("отправка запроса lastName =null", () -> {
+            UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(nullDataUpdateUserResponseSpec)
+                    .extract()
+                    .as(UpdateUserNullErorResponseModel.class);
 
-        UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(nullDataUpdateUserResponseSpec)
-                .extract()
-                .as(UpdateUserNullErorResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.lastName().get(0));
-
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.lastName().get(0));
+        });
     }
 
     @Test
@@ -286,20 +295,20 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(username, lastName, lastName, null);
+        step("отправка запроса email=null", () -> {
+            UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(nullDataUpdateUserResponseSpec)
+                    .extract()
+                    .as(UpdateUserNullErorResponseModel.class);
 
-        UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(nullDataUpdateUserResponseSpec)
-                .extract()
-                .as(UpdateUserNullErorResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.email().get(0));
-
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.email().get(0));
+        });
     }
 
     @Test
@@ -310,22 +319,23 @@ public class UpdateUserTests extends TestBase {
         loginUser(username, password);
 
         UpdateUserFullRequestModel updateUserRequest = new UpdateUserFullRequestModel(null, null, null, null);
+        step("отправка запроса c null параметрами", () -> {
+            UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
+                    .body(updateUserRequest)
+                    .headers("Authorization",
+                            "Bearer " + actualAccess)
+                    .when()
+                    .patch("/users/me/")
+                    .then()
+                    .spec(nullDataUpdateUserResponseSpec)
+                    .extract()
+                    .as(UpdateUserNullErorResponseModel.class);
 
-        UpdateUserNullErorResponseModel responseModel = given(updateUserRequestSpec)
-                .body(updateUserRequest)
-                .headers("Authorization",
-                        "Bearer " + actualAccess)
-                .when()
-                .patch("/users/me/")
-                .then()
-                .spec(nullDataUpdateUserResponseSpec)
-                .extract()
-                .as(UpdateUserNullErorResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.username().get(0));
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.firstName().get(0));
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.lastName().get(0));
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.email().get(0));
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.username().get(0));
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.firstName().get(0));
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.lastName().get(0));
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.email().get(0));
+        });
     }
 
     @Test
@@ -441,8 +451,8 @@ public class UpdateUserTests extends TestBase {
                 .extract()
                 .as(UpdateUserNullErorResponseModel.class);
 
-        assertEquals(EXPECTED_ERROR_REQUIRED_FIELD,responseModel.username().get(0));
-        assertEquals(EXPECTED_ERROR_REQUIRED_FIELD,responseModel.email().get(0));
+        assertEquals(EXPECTED_ERROR_REQUIRED_FIELD, responseModel.username().get(0));
+        assertEquals(EXPECTED_ERROR_REQUIRED_FIELD, responseModel.email().get(0));
     }
 
     @Test

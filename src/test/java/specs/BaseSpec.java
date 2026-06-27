@@ -1,10 +1,12 @@
 package specs;
 
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 
+import static allure.CustomAllureListener.withCustomTemplate;
 import static io.restassured.RestAssured.with;
 import static io.restassured.filter.log.LogDetail.ALL;
 import static io.restassured.http.ContentType.JSON;
@@ -14,13 +16,13 @@ import static org.hamcrest.Matchers.notNullValue;
 public class BaseSpec {
 
     public static RequestSpecification baseRequestSpec = with()
+            .filter(withCustomTemplate())
             .log().all()
-            .contentType(JSON)
-            .basePath("/api/v1");
+            .contentType(JSON);
 
     public static RequestSpecification baseRequestNoContentTypeSpec = with()
-            .log().all()
-            .basePath("/api/v1");
+            .filter(withCustomTemplate())
+            .log().all();
 
     public static ResponseSpecification error500ResponseSpec = new ResponseSpecBuilder()
             .log(ALL)

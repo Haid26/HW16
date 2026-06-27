@@ -1,5 +1,6 @@
 package test;
 
+import io.qameta.allure.Step;
 import models.common.ErrorDetailResponseModel;
 import models.login.LoginRequestModel;
 import models.login.LoginResponseModel;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,13 +32,13 @@ public class LogoutTests extends TestBase {
     String actualRefresh;
     String actualAccess;
 
-    @BeforeEach
     public void generateTestData() {
         Faker faker = new Faker();
         username = faker.internet().username();
         password = faker.internet().password();
     }
 
+    @Step("Регистрация пользователя")
     public void registerUser(String username, String password) {
         RegistrationRequestModel registrationData = new RegistrationRequestModel(username, password);
 
@@ -52,24 +54,26 @@ public class LogoutTests extends TestBase {
         assertEquals(username, registrationResponseModel.username());
     }
 
+
     public void loginUser(String username, String password) {
-        LoginRequestModel loginData = new LoginRequestModel(username, password);
+        step("авторизация пользователя", () -> {
+            LoginRequestModel loginData = new LoginRequestModel(username, password);
+            LoginResponseModel loginResponse = given(loginRequestSpec)
+                    .body(loginData)
+                    .when()
+                    .post("/auth/token/")
+                    .then()
+                    .spec(successfulLoginResponseSpec)
+                    .extract()
+                    .as(LoginResponseModel.class);
 
-        LoginResponseModel loginResponse = given(loginRequestSpec)
-                .body(loginData)
-                .when()
-                .post("/auth/token/")
-                .then()
-                .spec(successfulLoginResponseSpec)
-                .extract()
-                .as(LoginResponseModel.class);
+            actualRefresh = loginResponse.refresh();
+            actualAccess = loginResponse.access();
 
-        actualRefresh = loginResponse.refresh();
-        actualAccess = loginResponse.access();
-
-        assertThat(actualAccess).startsWith(EXPECTED_TOKEN_PATH);
-        assertThat(actualRefresh).startsWith(EXPECTED_TOKEN_PATH);
-        assertThat(actualAccess).isNotEqualTo(actualRefresh);
+            assertThat(actualAccess).startsWith(EXPECTED_TOKEN_PATH);
+            assertThat(actualRefresh).startsWith(EXPECTED_TOKEN_PATH);
+            assertThat(actualAccess).isNotEqualTo(actualRefresh);
+        });
     }
 
     @Test
@@ -79,15 +83,16 @@ public class LogoutTests extends TestBase {
         registerUser(username, password);
         loginUser(username, password);
 
-        LogoutRequestModel logoutData = new LogoutRequestModel(actualRefresh);
+        step("успешный логаут", () -> {
+            LogoutRequestModel logoutData = new LogoutRequestModel(actualRefresh);
 
-        given(logoutRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .spec(successfulLogoutResponseSpec);
-
+            given(logoutRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout/")
+                    .then()
+                    .spec(successfulLogoutResponseSpec);
+        });
     }
 
     @Test
@@ -97,15 +102,15 @@ public class LogoutTests extends TestBase {
         registerUser(username, password);
         loginUser(username, password);
 
-        LogoutRequestModel logoutData = new LogoutRequestModel(actualRefresh);
-
-        given(logoutRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout")
-                .then()
-                .spec(error500LogoutResponseSpec);
-
+        step("отправка запроса без /", () -> {
+            LogoutRequestModel logoutData = new LogoutRequestModel(actualRefresh);
+            given(logoutRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout")
+                    .then()
+                    .spec(error500LogoutResponseSpec);
+        });
     }
 
     @Test
@@ -115,18 +120,19 @@ public class LogoutTests extends TestBase {
         registerUser(username, password);
         loginUser(username, password);
 
-        LogoutRequestModel logoutData = new LogoutRequestModel(actualRefresh);
+        step("отправка запроса без content type", () -> {
+            LogoutRequestModel logoutData = new LogoutRequestModel(actualRefresh);
+            ErrorDetailResponseModel responseModel = given(logoutNoContentTypeRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout/")
+                    .then()
+                    .spec(noContentTypeLogoutResponseSpec)
+                    .extract()
+                    .as(ErrorDetailResponseModel.class);
 
-        ErrorDetailResponseModel responseModel = given(logoutNoContentTypeRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .spec(noContentTypeLogoutResponseSpec)
-                .extract()
-                .as(ErrorDetailResponseModel.class);
-
-        assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE, responseModel.detail());
+            assertEquals(EXPECTED_ERROR_UNSUPPORTED_MEDIA_TYPE, responseModel.detail());
+        });
     }
 
     @Test
@@ -136,55 +142,57 @@ public class LogoutTests extends TestBase {
         registerUser(username, password);
         loginUser(username, password);
 
-        LogoutRequestModel logoutData = new LogoutRequestModel(null);
+        step("отправка запроса где токен = null", () -> {
+            LogoutRequestModel logoutData = new LogoutRequestModel(null);
+            LogoutResponseWithoutTokenModel responseModel = given(logoutRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout/")
+                    .then()
+                    .spec(errorEmptyTokenLogoutResponseSpec)
+                    .extract()
+                    .as(LogoutResponseWithoutTokenModel.class);
 
-        LogoutResponseWithoutTokenModel responseModel = given(logoutRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .spec(errorEmptyTokenLogoutResponseSpec)
-                .extract()
-                .as(LogoutResponseWithoutTokenModel.class);
-
-        assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.refresh().get(0));
+            assertEquals(EXPECTED_ERROR_NULL_VALUE, responseModel.refresh().get(0));
+        });
     }
 
     @Test
     @DisplayName("Logout empty token")
     public void logoutEmptyTokenTest() {
-        LogoutEmptyRequestModel logoutData = new LogoutEmptyRequestModel();
+        step("отправка запроса без токена", () -> {
+            LogoutEmptyRequestModel logoutData = new LogoutEmptyRequestModel();
+            LogoutResponseWithoutTokenModel responseModel = given(logoutRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout/")
+                    .then()
+                    .spec(errorEmptyTokenLogoutResponseSpec)
+                    .extract()
+                    .as(LogoutResponseWithoutTokenModel.class);
 
-        LogoutResponseWithoutTokenModel responseModel = given(logoutRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .spec(errorEmptyTokenLogoutResponseSpec)
-                .extract()
-                .as(LogoutResponseWithoutTokenModel.class);
-
-       assertEquals(EXPECTED_ERROR_REQUIRED_FIELD, responseModel.refresh().get(0));
+            assertEquals(EXPECTED_ERROR_REQUIRED_FIELD, responseModel.refresh().get(0));
+        });
     }
 
     @Test
     @DisplayName("Logout invalid token")
     public void logoutInvalidTokenTest() {
-        LogoutRequestModel logoutData = new LogoutRequestModel("123");
+        step("отправка запроса с невалидным токеном", () -> {
+            LogoutRequestModel logoutData = new LogoutRequestModel("123");
+            LogoutResponseErrorTokenModel responseModel = given(logoutRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout/")
+                    .then()
+                    .spec(errorTokenLogoutResponseSpec)
+                    .extract()
+                    .as(LogoutResponseErrorTokenModel.class);
 
-        LogoutResponseErrorTokenModel responseModel = given(logoutRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .spec(errorTokenLogoutResponseSpec)
-                .extract()
-                .as(LogoutResponseErrorTokenModel.class);
 
-
-
-        assertEquals(EXPECTED_ERROR_INVALID_TOKEN, responseModel.detail());
-        assertEquals(EXPECTED_ERROR_CODE_INVALID_TOKEN,responseModel.code());
+            assertEquals(EXPECTED_ERROR_INVALID_TOKEN, responseModel.detail());
+            assertEquals(EXPECTED_ERROR_CODE_INVALID_TOKEN, responseModel.code());
+        });
     }
 
     @Test
@@ -195,25 +203,28 @@ public class LogoutTests extends TestBase {
         loginUser(username, password);
 
         LogoutRequestModel logoutData = new LogoutRequestModel(actualRefresh);
-        given(logoutRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .spec(successfulLogoutResponseSpec);
+        step("первый логаут", () -> {
+                    given(logoutRequestSpec)
+                            .body(logoutData)
+                            .when()
+                            .post("/auth/logout/")
+                            .then()
+                            .spec(successfulLogoutResponseSpec);
+                });
+        step("второй логаут", () -> {
+            LogoutResponseErrorTokenModel responseModel2 = given(logoutRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout/")
+                    .then()
+                    .spec(errorTokenLogoutResponseSpec)
+                    .extract()
+                    .as(LogoutResponseErrorTokenModel.class);
 
-        LogoutResponseErrorTokenModel responseModel2 =  given(logoutRequestSpec)
-                .body(logoutData)
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .spec(errorTokenLogoutResponseSpec)
-                .extract()
-                .as(LogoutResponseErrorTokenModel.class);
 
-
-        assertEquals(EXPECTED_ERROR_TOKEN_BLACKLISTED, responseModel2.detail());
-        assertEquals(EXPECTED_ERROR_CODE_INVALID_TOKEN,responseModel2.code());
+            assertEquals(EXPECTED_ERROR_TOKEN_BLACKLISTED, responseModel2.detail());
+            assertEquals(EXPECTED_ERROR_CODE_INVALID_TOKEN, responseModel2.code());
+        });
     }
 
 }

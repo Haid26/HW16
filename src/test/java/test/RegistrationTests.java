@@ -20,7 +20,7 @@ public class RegistrationTests extends TestBase{
     String password;
     String errorMsg;
 
-    @BeforeEach
+
     public void generateTestData(){
         Faker faker = new Faker();
         username= faker.internet().username();
